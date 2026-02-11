@@ -1,29 +1,26 @@
-name: AI Inline Code Review (Groq)
+name: AI Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
 
 jobs:
-  ai-review:
+  review:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install deps
-        run: pip install -r ai_reviewer/requirements.txt
+        run: pip install -r requirements.txt
 
-      - name: Run AI Inline Review
+      - name: Run AI Reviewer
         env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python ai_reviewer/inline_review.py

@@ -5,7 +5,7 @@ client = OpenAI(api_key=os.getenv("GROQ_API_KEY"), base_url="https://api.groq.co
 
 def call_llm(prompt):
     res = client.chat.completions.create(
-    model="llama3-8b-8192",
+    model="llama-3.1-8b-instant",
     messages=[{"role": "user", "content": prompt}],
     temperature=0.2,
     )

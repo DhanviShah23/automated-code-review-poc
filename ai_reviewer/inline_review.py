@@ -51,6 +51,15 @@ def main():
             seen.add(key)
             final_issues.append(i)
 
+    valid_files = {pf.path.split("/")[-1] for pf in patch}
+
+    final_issues = [
+        i for i in final_issues
+        if i.get("file")
+        and i["file"].split("/")[-1] in valid_files
+        and i.get("line", 0) > 0
+    ]
+    
     critical_found = False
             
     for issue in final_issues:

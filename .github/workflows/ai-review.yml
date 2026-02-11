@@ -26,4 +26,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: python ai_reviewer/inline_review.py

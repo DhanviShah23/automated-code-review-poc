@@ -3,7 +3,7 @@ import os, requests
 token = os.getenv("GITHUB_TOKEN")
 repo = os.getenv("GITHUB_REPOSITORY")
 pr = os.getenv("PR_NUMBER")
-commit_sha = os.getenv("GITHUB_SHA")
+commit_sha = os.getenv("GITHUB_HEAD_SHA") or os.getenv("GITHUB_SHA")
 
 headers = {"Authorization": f"Bearer {token}"}
 

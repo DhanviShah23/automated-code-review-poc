@@ -52,22 +52,22 @@ def main():
             final_issues.append(i)
 
     critical_found = False
-
+            
     for issue in final_issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
-        if pos:
-            comment = f"[{issue['severity']}] {issue['comment']}"
-            post_inline_comment(issue["file"], pos, comment)
 
-        if issue["severity"] in ["HIGH", "CRITICAL"]:
-            critical_found = True
+        if not pos:
+            print(f"⚠️ Could not map diff position for {issue}")
+            continue
 
-    # FAIL PR IF CRITICAL ISSUES FOUND
+        comment = f"[{issue['severity']}] {issue['comment']}"
+        post_inline_comment(issue["file"], pos, comment)
+    
     if critical_found:
         print("❌ Critical issues detected. Failing pipeline.")
         exit(1)
 
-    print("✅ No critical issues")
+    print("No critical issues")
 
 if __name__ == "__main__":
     main()

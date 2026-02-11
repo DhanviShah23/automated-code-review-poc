@@ -10,9 +10,10 @@ headers = {"Authorization": f"Bearer {token}"}
 def post_inline_comment(file, position, body):
     url = f"https://api.github.com/repos/{repo}/pulls/{pr}/comments"
     payload = {
-    "body": body,
-    "commit_id": commit_sha,
-    "path": file,
-    "position": position
+        "body": body,
+        "commit_id": commit_sha,
+        "path": file,
+        "position": position
     }
-    requests.post(url, headers=headers, json=payload)
+    r = requests.post(url, headers=headers, json=payload)
+    print("INLINE COMMENT API:", r.status_code, r.text)

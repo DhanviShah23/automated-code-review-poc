@@ -4,6 +4,7 @@ from pathlib import Path
 from diff_parser import parse_diff, find_diff_position
 from groq_client import call_llm
 from github_api import post_inline_comment
+import os
 
 def load_prompt(diff):
     template = Path("ai_reviewer/prompt.txt").read_text()

@@ -35,8 +35,15 @@ def get_diff():
 def chunk_text(text, size=7000):
     return [text[i:i+size] for i in range(0, len(text), size)]
 
+def annotate_diff(diff):
+    annotated = []
+    for i, line in enumerate(diff.splitlines(), 1):
+        annotated.append(f"{i}: {line}")
+    return "\n".join(annotated)
+
 def main():
-    diff = get_diff()
+    raw_diff = get_diff()
+    diff = annotate_diff(raw_diff)
     if not diff.strip():
         print("No diff detected")
         return
@@ -75,6 +82,22 @@ def main():
         and i["file"].split("/")[-1] in valid_files
         and i.get("line", 0) > 0
     ]
+
+    SECURITY_KEYWORDS = ["eval", "password", "token", "secret", "innerHTML", "document"]
+
+    def is_real_security_issue(issue):
+        text = issue["comment"].lower()
+        return any(k in text for k in SECURITY_KEYWORDS)
+
+    filtered = []
+    for i in final_issues:
+        if i["severity"] in ["HIGH", "CRITICAL"]:
+            if not is_real_security_issue(i):
+                print("Skipping hallucinated security issue:", i)
+                continue
+        filtered.append(i)
+
+    final_issues = filtered
 
     critical_found = False
 

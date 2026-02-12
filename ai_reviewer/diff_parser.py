@@ -12,6 +12,11 @@ def find_diff_position(patch, filename, target_line):
                     position += 1
                     if line.is_removed:
                         continue
+                    
                     if line.target_line_no == target_line:
                         return position
+                    
+                    if line.is_context and line.target_line_no == target_line:
+                        return position
     return None
+

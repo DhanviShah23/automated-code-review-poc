@@ -57,5 +57,9 @@ Return STRICT JSON array:
   }
 ]
 
+Use the actual target file line numbers from the diff hunks (the numbers after + in @@).
+Do NOT invent line numbers.
+If unsure, omit the issue.
+
 DIFF:
 {diff}

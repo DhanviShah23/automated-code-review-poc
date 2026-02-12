@@ -35,20 +35,14 @@ def get_diff():
 def chunk_text(text, size=7000):
     return [text[i:i+size] for i in range(0, len(text), size)]
 
-def annotate_diff(diff):
-    annotated = []
-    for i, line in enumerate(diff.splitlines(), 1):
-        annotated.append(f"{i}: {line}")
-    return "\n".join(annotated)
-
 def main():
     raw_diff = get_diff()
-    diff = annotate_diff(raw_diff)
+    diff = raw_diff
+    patch = parse_diff(raw_diff)
     if not diff.strip():
         print("No diff detected")
         return
-
-    patch = parse_diff(diff)
+    
     issues_all = []
 
     for chunk in chunk_text(diff):
@@ -83,7 +77,7 @@ def main():
         and i.get("line", 0) > 0
     ]
 
-    SECURITY_KEYWORDS = ["eval", "password", "token", "secret", "innerHTML", "document"]
+    SECURITY_KEYWORDS = ["eval", "password", "token", "secret", "innerHTML", "document.write"]
 
     def is_real_security_issue(issue):
         text = issue["comment"].lower()
@@ -109,6 +103,7 @@ def main():
 
     for issue in final_issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
+        print (pos, 'position----')
         print(f"DEBUG POS: {issue['file']}:{issue['line']} => {pos}")
 
         if not pos:

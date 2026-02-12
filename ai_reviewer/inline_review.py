@@ -5,6 +5,25 @@ from diff_parser import parse_diff, find_diff_position
 from groq_client import call_llm
 from github_api import post_inline_comment
 import os
+import re
+
+def extract_json(text):
+    """
+    Extract valid JSON array from messy LLM output.
+    Prevents JSONDecodeError crashes.
+    """
+    # Remove markdown fences
+    text = text.replace("```json", "").replace("```", "")
+
+    # Extract first JSON array
+    start = text.find("[")
+    end = text.rfind("]") + 1
+
+    if start == -1 or end == -1:
+        return "[]"
+
+    return text[start:end]
+
 
 def load_prompt(diff):
     template = Path("ai_reviewer/prompt.txt").read_text()
@@ -26,31 +45,32 @@ def main():
     patch = parse_diff(diff)
     issues_all = []
 
+    # ---- CALL LLM IN CHUNKS ----
     for chunk in chunk_text(diff):
         prompt = load_prompt(chunk)
         response = call_llm(prompt)
 
         print("RAW AI OUTPUT:\n", response)
 
-        # Remove markdown if AI adds it
-        response = response.replace("```json", "").replace("```", "").strip()
+        response = extract_json(response)
 
         try:
             issues = json.loads(response)
             issues_all.extend(issues)
         except Exception as e:
             print("JSON parse failed:", e)
-            continue
+            print("RAW:", response)
 
-    # Deduplicate issues AFTER all chunks
+    # ---- DEDUPLICATE ----
     seen = set()
     final_issues = []
     for i in issues_all:
-        key = (i["file"], i["line"], i["comment"])
+        key = (i.get("file"), i.get("line"), i.get("comment"))
         if key not in seen:
             seen.add(key)
             final_issues.append(i)
 
+    # ---- FILTER ONLY REAL DIFF FILES ----
     valid_files = {pf.path.split("/")[-1] for pf in patch}
 
     final_issues = [
@@ -59,19 +79,13 @@ def main():
         and i["file"].split("/")[-1] in valid_files
         and i.get("line", 0) > 0
     ]
-    
+
     critical_found = False
-        
-    for chunk in chunk_text(diff):
-        prompt = load_prompt(chunk)
-    response = call_llm(prompt)
-    response = extract_json(response)
 
-    issues = json.loads(response)
-
-    for issue in issues:
+    # ---- POST INLINE COMMENTS ----
+    for issue in final_issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
-        print(pos, 'positionnnn----------------------------')
+        print(f"DEBUG POS: {issue['file']}:{issue['line']} => {pos}")
 
         if not pos:
             continue
@@ -81,9 +95,10 @@ def main():
 
         if issue["severity"] in ["CRITICAL", "HIGH"]:
             critical_found = True
-    
+
+    # ---- FAIL PIPELINE ----
     if critical_found:
-        print("Critical issues detected. Failing pipeline.")
+        print("❌ Critical issues detected. Failing pipeline.")
         exit(1)
 
     print("No critical issues")

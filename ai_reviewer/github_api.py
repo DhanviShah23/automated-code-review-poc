@@ -1,26 +1,24 @@
-import os
-import requests
+import os, requests
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+TOKEN = os.getenv("GITHUB_TOKEN")
 REPO = os.getenv("GITHUB_REPOSITORY")
-PR_NUMBER = os.getenv("PR_NUMBER")
-HEAD_SHA = os.getenv("GITHUB_HEAD_SHA") or os.getenv("GITHUB_SHA")
+PR = os.getenv("PR_NUMBER")
+HEAD_SHA = os.getenv("GITHUB_HEAD_SHA")
 
-def post_inline_comment(file, position, comment):
-    url = f"https://api.github.com/repos/{REPO}/pulls/{PR_NUMBER}/comments"
+def post_inline_comment(path, position, body):
+    url = f"https://api.github.com/repos/{REPO}/pulls/{PR}/comments"
 
     payload = {
-        "body": comment,
+        "body": body,
         "commit_id": HEAD_SHA,
-        "path": file,
+        "path": path,
         "position": position
     }
 
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Authorization": f"Bearer {TOKEN}",
         "Accept": "application/vnd.github+json"
     }
 
-    res = requests.post(url, json=payload, headers=headers)
-    if res.status_code >= 300:
-        print("GitHub comment failed:", res.status_code, res.text)
+    r = requests.post(url, json=payload, headers=headers)
+    print("COMMENT API:", r.status_code, r.text)

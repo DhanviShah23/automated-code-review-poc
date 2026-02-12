@@ -2,8 +2,12 @@ name: AI Inline Code Review (Groq)
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
 
+permissions:
+  pull-requests: write
+  contents: read
+  
 jobs:
   ai-review:
     runs-on: ubuntu-latest

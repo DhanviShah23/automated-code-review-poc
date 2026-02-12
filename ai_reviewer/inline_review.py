@@ -7,23 +7,21 @@ from github_api import post_inline_comment
 import os
 import re
 
-def extract_json(text):
+def extract_json(text: str) -> str:
     """
-    Extract valid JSON array from messy LLM output.
-    Prevents JSONDecodeError crashes.
+    Extract first valid JSON array or object from LLM output.
+    Handles markdown, extra text, broken fences.
     """
     # Remove markdown fences
-    text = text.replace("```json", "").replace("```", "")
+    text = re.sub(r"```.*?\n", "", text)
+    text = text.replace("```", "").strip()
 
-    # Extract first JSON array
-    start = text.find("[")
-    end = text.rfind("]") + 1
+    # Find JSON array or object
+    match = re.search(r"(\[.*\]|\{.*\})", text, re.S)
+    if not match:
+        raise ValueError("No JSON found in LLM output")
 
-    if start == -1 or end == -1:
-        return "[]"
-
-    return text[start:end]
-
+    return match.group(1)
 
 def load_prompt(diff):
     template = Path("ai_reviewer/prompt.txt").read_text()

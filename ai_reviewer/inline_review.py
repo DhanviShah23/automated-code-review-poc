@@ -35,12 +35,6 @@ def get_diff():
 def chunk_text(text, size=7000):
     return [text[i:i+size] for i in range(0, len(text), size)]
 
-def annotate_diff(diff):
-    annotated = []
-    for i, line in enumerate(diff.splitlines(), 1):
-        annotated.append(f"{i}: {line}")
-    return "\n".join(annotated)
-
 def main():
     raw_diff = get_diff()
     diff = raw_diff
@@ -48,8 +42,7 @@ def main():
     if not diff.strip():
         print("No diff detected")
         return
-
-    patch = parse_diff(diff)
+    
     issues_all = []
 
     for chunk in chunk_text(diff):
@@ -75,7 +68,7 @@ def main():
             seen.add(key)
             final_issues.append(i)
 
-    valid_files = {pf.path for pf in patch} | {pf.path.split("/")[-1] for pf in patch}
+    valid_files = {pf.path.split("/")[-1] for pf in patch}
 
     final_issues = [
         i for i in final_issues

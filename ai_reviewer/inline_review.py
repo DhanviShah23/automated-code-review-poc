@@ -43,7 +43,8 @@ def annotate_diff(diff):
 
 def main():
     raw_diff = get_diff()
-    diff = annotate_diff(raw_diff)
+    diff = raw_diff
+    patch = parse_diff(raw_diff)
     if not diff.strip():
         print("No diff detected")
         return
@@ -74,7 +75,7 @@ def main():
             seen.add(key)
             final_issues.append(i)
 
-    valid_files = {pf.path.split("/")[-1] for pf in patch}
+    valid_files = {pf.path for pf in patch} | {pf.path.split("/")[-1] for pf in patch}
 
     final_issues = [
         i for i in final_issues
@@ -83,7 +84,7 @@ def main():
         and i.get("line", 0) > 0
     ]
 
-    SECURITY_KEYWORDS = ["eval", "password", "token", "secret", "innerHTML", "document"]
+    SECURITY_KEYWORDS = ["eval", "password", "token", "secret", "innerHTML", "document.write"]
 
     def is_real_security_issue(issue):
         text = issue["comment"].lower()

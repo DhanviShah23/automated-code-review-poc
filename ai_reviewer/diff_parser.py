@@ -5,7 +5,7 @@ def parse_diff(diff_text):
 
 def find_diff_position(patch, filename, target_line):
     for pf in patch:
-        if pf.path.endswith(filename):
+        if pf.path == filename or pf.path.endswith("/" + filename):
             position = 0
             for hunk in pf:
                 for line in hunk:

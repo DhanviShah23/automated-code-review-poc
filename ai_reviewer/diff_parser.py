@@ -10,6 +10,6 @@ def find_diff_position(patch, filename, target_line):
             for hunk in pf:
                 for line in hunk:
                     position += 1
-                    if line.is_added and line.target_line_no == target_line:
+                    if line.target_line_no == target_line and (line.is_added or line.is_context):
                         return position
     return None

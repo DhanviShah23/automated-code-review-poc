@@ -1,18 +1,31 @@
 import os, requests
 
-token = os.getenv("GITHUB_TOKEN")
-repo = os.getenv("GITHUB_REPOSITORY")
-pr = os.getenv("PR_NUMBER")
-commit_sha = os.getenv("GITHUB_SHA")
+TOKEN = os.getenv("GITHUB_TOKEN")
+REPO = os.getenv("GITHUB_REPOSITORY")
+PR = os.getenv("PR_NUMBER")
+HEAD_SHA = os.getenv("GITHUB_HEAD_SHA")
 
-headers = {"Authorization": f"Bearer {token}"}
+def post_inline_comment(path, position, body):
+    url = f"https://api.github.com/repos/{REPO}/pulls/{PR}/comments"
 
-def post_inline_comment(file, position, body):
-    url = f"https://api.github.com/repos/{repo}/pulls/{pr}/comments"
     payload = {
-    "body": body,
-    "commit_id": commit_sha,
-    "path": file,
-    "position": position
+        "body": body,
+        "commit_id": HEAD_SHA,
+        "path": path,
+        "position": position
     }
-    requests.post(url, headers=headers, json=payload)
+
+    headers = {
+        "Authorization": f"Bearer {TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    r = requests.post(url, json=payload, headers=headers)
+    print("COMMENT API:", r.status_code, r.text)
+
+def get_existing_comments():
+    url = f"https://api.github.com/repos/{REPO}/pulls/{PR}/comments"
+    headers = {"Authorization": f"Bearer {TOKEN}"}
+    res = requests.get(url, headers=headers)
+    res.raise_for_status()
+    return res.json()

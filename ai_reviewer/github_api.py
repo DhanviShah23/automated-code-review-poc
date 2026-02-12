@@ -22,3 +22,10 @@ def post_inline_comment(path, position, body):
 
     r = requests.post(url, json=payload, headers=headers)
     print("COMMENT API:", r.status_code, r.text)
+
+def get_existing_comments():
+    url = f"https://api.github.com/repos/{REPO}/pulls/{PR}/comments"
+    headers = {"Authorization": f"Bearer {TOKEN}"}
+    res = requests.get(url, headers=headers)
+    res.raise_for_status()
+    return res.json()

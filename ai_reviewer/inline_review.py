@@ -3,9 +3,10 @@ import subprocess, json
 from pathlib import Path
 from diff_parser import parse_diff, find_diff_position
 from groq_client import call_llm
-from github_api import post_inline_comment
+from github_api import post_inline_comment, get_existing_comments
 import os
 import re
+
 
 def extract_json(text: str) -> str:
     """
@@ -43,7 +44,6 @@ def main():
     patch = parse_diff(diff)
     issues_all = []
 
-    # ---- CALL LLM IN CHUNKS ----
     for chunk in chunk_text(diff):
         prompt = load_prompt(chunk)
         response = call_llm(prompt)
@@ -59,7 +59,6 @@ def main():
             print("JSON parse failed:", e)
             print("RAW:", response)
 
-    # ---- DEDUPLICATE ----
     seen = set()
     final_issues = []
     for i in issues_all:
@@ -68,7 +67,6 @@ def main():
             seen.add(key)
             final_issues.append(i)
 
-    # ---- FILTER ONLY REAL DIFF FILES ----
     valid_files = {pf.path.split("/")[-1] for pf in patch}
 
     final_issues = [
@@ -80,7 +78,12 @@ def main():
 
     critical_found = False
 
-    # ---- POST INLINE COMMENTS ----
+    existing_comments = get_existing_comments()
+    existing_keys = {
+        (c["path"], c["position"], c["body"])
+        for c in existing_comments
+    }
+
     for issue in final_issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
         print(f"DEBUG POS: {issue['file']}:{issue['line']} => {pos}")
@@ -89,12 +92,17 @@ def main():
             continue
 
         comment = f"[{issue['severity']}] {issue['comment']}"
+
+        key = (issue["file"], pos, comment)
+        if key in existing_keys:
+            print("Skipping duplicate:", key)
+            continue
+
         post_inline_comment(issue["file"], pos, comment)
 
         if issue["severity"] in ["CRITICAL", "HIGH"]:
             critical_found = True
 
-    # ---- FAIL PIPELINE ----
     if critical_found:
         print("❌ Critical issues detected. Failing pipeline.")
         exit(1)

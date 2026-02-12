@@ -110,6 +110,7 @@ def main():
 
     for issue in final_issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
+        print (pos, 'position----')
         print(f"DEBUG POS: {issue['file']}:{issue['line']} => {pos}")
 
         if not pos:

@@ -9,9 +9,9 @@ def find_diff_position(patch, filename, target_line):
             position = 0
             for hunk in pf:
                 for line in hunk:
-                    position += 1
                     if line.is_removed:
                         continue
+                    position += 1
                     if line.target_line_no == target_line:
                         return position
     return None

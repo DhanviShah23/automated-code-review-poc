@@ -64,6 +64,7 @@ def main():
             
     for issue in final_issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
+        print(pos, 'positionnnn----------------------------')
 
         if not pos:
             print(f"⚠️ Could not map diff position for {issue}")

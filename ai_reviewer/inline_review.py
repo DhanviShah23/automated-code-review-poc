@@ -61,20 +61,29 @@ def main():
     ]
     
     critical_found = False
-            
-    for issue in final_issues:
+        
+    for chunk in chunk_text(diff):
+        prompt = load_prompt(chunk)
+    response = call_llm(prompt)
+    response = extract_json(response)
+
+    issues = json.loads(response)
+
+    for issue in issues:
         pos = find_diff_position(patch, issue["file"], issue["line"])
         print(pos, 'positionnnn----------------------------')
 
         if not pos:
-            print(f"⚠️ Could not map diff position for {issue}")
             continue
 
         comment = f"[{issue['severity']}] {issue['comment']}"
         post_inline_comment(issue["file"], pos, comment)
+
+        if issue["severity"] in ["CRITICAL", "HIGH"]:
+            critical_found = True
     
     if critical_found:
-        print("❌ Critical issues detected. Failing pipeline.")
+        print("Critical issues detected. Failing pipeline.")
         exit(1)
 
     print("No critical issues")
